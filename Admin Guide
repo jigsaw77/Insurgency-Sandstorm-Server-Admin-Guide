@@ -1,0 +1,2289 @@
+Server Admin Guide 
+(1.8 server version)
+ 
+
+Installation
+Prerequisites
+Before installation make sure you have installed the required prerequisites on your server.
+
+Windows
+Visual C++ 2015 Redistributable: https://www.microsoft.com/en-us/download/details.aspx?id=53587
+VIsual C++ 2017 Redistributable: https://aka.ms/vs/15/release/vc_redist.x64.exe
+SteamCMD
+Like other games published on Steam, Insurgency: Sandstorm’s server files are published through a command-line tool known as “SteamCMD”. This GUI-less Steam client allows you to install and update the server’s files fairly easily.
+
+ 
+
+You can download SteamCMD from the following links:
+
+Windows: https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip
+Linux: https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+ 
+
+You can read more about SteamCMD and how to use it here: https://developer.valvesoftware.com/wiki/SteamCMD.
+
+ 
+
+Most commands through SteamCMD require knowledge of the “app ID”, for Insurgency: Sandstorm its server files use the app ID 581330.
+
+ 
+
+Launching
+Once installed, you may launch the server from the “InsurgencyServer” executable located in the root directory of where you installed the server. The command line should include the starting map, the scenario and any other launch parameters. For example:
+
+ 
+
+Windows
+
+InsurgencyServer.exe Oilfield?Scenario=Scenario_Refinery_Push_Security?MaxPlayers=28 -Port=27102 -QueryPort=27131 -log -hostname=”My Server”
+
+ 
+
+Linux
+
+Insurgency/Binaries/Linux/InsurgencyServer-Linux-Shipping Oilfield?Scenario=Scenario_Refinery_Push_Security?MaxPlayers=28 -Port=27102 -QueryPort=27131 -log -hostname=”My Server”
+
+ 
+
+In this example, the server will be started on Refinery (Oilfield) Push Security, hosted on port 27102 with a maximum of 28 players. 
+
+Travel Parameters
+Travel parameters are placed at the end of the map name in the command line, following it with a question mark (?) and then the setting variable and its value. In the above example “port”, “queryport” and “MaxPlayers” are travel parameters.
+
+ 
+
+Parameter	Description
+password	Sets a password for the server.
+MaxPlayers	Maximum number of players that can join the server. On coop servers, this is only the number of human players.
+ 
+
+Command Line Arguments
+ 
+
+Argument	Description
+?game=CheckpointHardcore	Enable Chceckpoint hardcore
+-ruleset=CompetitiveTheater	Enable competitive theater
+-log	Enables log window.
+-hostname=”My Server”	Set the name of the server as it appears on the server browser (replacing My Server with the name of your choice).
+-EnableCheats	Enable cheats for testing. (XP gains not work)
+-Port=xxxx	The UDP port that game connections are made to (replace xxxx with port number).
+-QueryPort=xxxx	The port that Steam runs server queries on (replace xxxx with port number).
+-MapCycle=MapCycle	Enable mapcycle
+-Adminlist=Admins	Enable admin list
+-GSLTToken=XXX	Enable Server token (use app steamid 581320 )
+-GameStats	Enable game stats
+-ruleset=OfficialRules	Enable official server rules
+-noEAC	Disable EAC (for linux users)
+ 
+
+-ruleset=CheckpointFrenzy	Enable Checkpoint Frenzy 
+ 
+
+Configuration
+Most server configuration is performed through INI files and launch parameters. INI files can be edited with any plain text editor such as Notepad, Notepad++, Sublime Text and VSCode.
+
+ 
+
+The location of the configuration files are in the following directories (relative to the installation directory):
+
+Windows: Insurgency\Saved\Config\WindowsServer
+Linux: Insurgency/Saved/Config/LinuxServer
+Admin List
+The game has a built-in admin menu which provides basic functionality such as kicking, banning and changing the level. In order to add admins, you will need to know their 64-bit Steam ID (aka steamID64). You can find this by using an online converter such as STEAMID I/O.
+
+ 
+
+The list is contained inside Insurgency/Config/Server/Admins.txt. If this file does not exist, create it. You can also override the file by specifying a command line switch, for example -AdminList=OtherAdminList would make the server read from OtherAdminList.txt instead.
+
+ 
+
+For each server admin you want to add, put each Steam ID on a new line. You can do this for as many admins as you would like to add. Adding new admins will require a server restart or level change for any changes to be reflected in-game. When a player with admin is connected to the server, they should be able to open the admin menu, it is bound to the Keypad Subtract button by default and can be re-bound in the key bindings menu.
+
+Remote Access (Rcon)
+Rcon can be enabled to provide remote access to the server for administrative tasks that don’t require you to join the server. This is implemented using the Source Engine Rcon Protocol which has clients available for it such as mcrcon.
+
+Enabling Access
+Rcon can be enabled either through modifying Game.ini or through the server’s command line. To enable it via the command line you can provide the arguments -Rcon -RconPassword=password -RconListenPort=27015 replacing the password and port with your preference.
+
+ 
+
+Through Game.ini you can add the following options:
+
+ 
+
+[Rcon]
+
+bEnabled=True
+
+Password=password
+
+ListenPort=27015
+
+ 
+
+The following additional config variables are also available:
+
+ 
+
+Setting	Default	Description
+bUseBroadcastAddress	True	If enabled, then the rcon socket will listen on all available network devices.
+ListenAddressOverride	0.0.0.0	If bUseBroadcastAddress is False, this is the network IP the rcon socket is bound to.
+bAllowConsoleCommands	True	When enabled, any unknown rcon commands will be interpreted as console commands.
+MaxPasswordAttempts	3	The maximum number of failed authentication attempts before the IP address is temporarily banned.
+IncorrectPasswordBanTime	30	The amount of time (in minutes) a client is banned from attempting to connect to rcon if they’ve reached their maximum number of attempts.
+ 
+
+Commands
+You can get a list of commands at any time by typing “help” into the console. This will show a summary of all available commands, their usage as well as a description of the command’s function.
+
+ 
+
+The table below shows the available commands, mandatory parameters are shown surrounded by “<” and “>”, while optional parameters are surrounded with “[“ and “]”.
+
+ 
+
+Command	Parameters	Function
+help		Displays a list of commands.
+listplayers		Lists players currently connected to the server.
+kick	<id/netid/name> [reason]	Kicks a player from the server.
+ban	<id/netid/name> [duration in minutes] [reason]	Bans a player from the server.
+banid	<netid> [duration in minutes] [reason]	Bans a player (by net ID) from the server. Does not require the player to be
+on the server.
+
+permban	<id/netid/name> [reason]	Permanently bans a player from the server.
+unban	<netid>	Lifts a ban for a user.
+listbans		Shows the ban list for the server.
+say	<message>	Shows a message to all players in the chat box.
+restartround	[0 = no team switch, 1 = swap teams]	Restarts the current round.
+maps	[level filter]	Lists available maps.
+scenarios	[level filter]	Lists available scenarios.
+travelscenario	<scenario>	Change level to given scenario.
+travel	<travel url>	Transitions the server to a different level.
+gamemodeproperty	<property> [new value]	Gets or sets a gamemode property for the length of the scenario.
+listgamemodeproperties	[property filter]	Lists all properties available for the currently loaded gamemode.
+ 
+
+By default, any unknown commands will be executed as console commands.
+
+ 
+
+Enabling Stats
+Any Insurgency: Sandstorm community server is able to host a stats-enabled game. The only requirements is that you must use a Steam GSLT and you must not have a password.
+
+GSLT Authentication
+In order for your server to be able to authenticate with the stats server, you must authenticate your server through using a Steam GSLT (Game Server Login Token). GSLTs can be obtained from Steam’s Game Server Account Management page. As this page stage, there is various criteria your Steam account needs to meet in order to generate a token, this includes ownership of the game, linking your Steam account with a phone number and having your account in good standing.
+
+In order to generate a token for Insurgency: Sandstorm (Community Test Environment), enter the App ID as 887860. The memo field can be set to anything so use it to help you remember which token you are assigning to each of your servers. You must use a unique token for each individual server you are hosting.
+
+To start your server with GSLT authentication add -GSLTToken=xxxxxxxxxxxxxxx to the server’s command line where “xxxxxxxxxxxxxxx” is the token displayed on the Steam Game Server Account page.
+
+Stats Opt-in
+By default, game servers will not attempt to report to the stats system. Following the GSLT login steps above, also add -GameStats to your server’s command line to enable the opt-in.
+
+Optional: Official Rules
+The game ships with a ruleset which are considered “official rules”, this locks down the options you can change on your dedicated server. If you are running a mostly vanilla server, you may consider opting into this ruleset in order for your server to appear under the “official rules” filter. In order to opt-in add -ruleset=OfficialRules to your server’s command line.
+
+ 
+
+Map Cycle
+By default, a server will cycle through all Versus (PVP) scenarios available.
+
+ 
+
+The server can be configured with a mapcycle file which contains a list of scenarios, separated by new lines. By default, this file must be placed in Insurgency/Config/Server/MapCycle.txt. This can be defined on the command line using the -MapCycle parameter. So if you wanted it to read MyOtherMapCycle.txt you would specify -MapCycle=MyOtherMapCycle.
+
+ 
+
+For example, a Skirmish only server’s MapCycle.txt should look like the following:
+
+Scenario_Crossing_Skirmish
+
+Scenario_Hideout_Skirmish
+
+Scenario_Precinct_Skirmish
+
+Scenario_Refinery_Skirmish
+
+Scenario_Farmhouse_Skirmish
+
+Scenario_Summit_Skirmish
+
+ 
+
+Additionally, you may define an entry with an override gamemode as some gamemodes can share scenarios. For example, in order to have Hardcore
+
+Checkpoint Security on Hideout you would enter the following:
+
+(Scenario=”Scenario_Town_Checkpoint_Security”,Mode=”CheckpointHardcore”)
+
+ 
+
+Scenario List
+
+CROSSING (CANYON)
+
+Scenario_Crossing_Checkpoint_Insurgents	
+Scenario_Crossing_Checkpoint_Security	
+Scenario_Crossing_Domination	
+Scenario_Crossing_Firefight_West	
+Scenario_Crossing_Frontline	
+Scenario_Crossing_Outpost	
+Scenario_Crossing_Push_Insurgents	
+Scenario_Crossing_Push_Security
+Scenario_Crossing_Skirmish	
+Scenario_Crossing_Team_Deathmatch	
+
+FARMHOUSE
+
+Scenario_Farmhouse_Checkpoint_Insurgents	
+Scenario_Farmhouse_Checkpoint_Security	
+Scenario_Farmhouse_Domination
+Scenario_Farmhouse_Firefight_East	
+Scenario_Farmhouse_Firefight_West	
+Scenario_Farmhouse_Frontline
+Scenario_Farmhouse_Push_Insurgents	
+Scenario_Farmhouse_Push_Security	
+Scenario_Farmhouse_Skirmish	
+Scenario_Farmhouse_Team_Deathmatch
+
+HIDEOUT (TOWN)
+
+Scenario_Hideout_Checkpoint_Insurgents
+Scenario_Hideout_Checkpoint_Security	
+Scenario_Hideout_Domination
+Scenario_Hideout_Firefight_East
+Scenario_Hideout_Firefight_West	
+Scenario_Hideout_Frontline	
+Scenario_Hideout_Push_Insurgents	
+Scenario_Hideout_Push_Security	
+Scenario_Hideout_Skirmish	
+Scenario_Hideout_Team_Deathmatch	
+
+HILLSIDE (SINJAR)
+
+Scenario_Hillside_Checkpoint_Insurgents	
+Scenario_Hillside_Checkpoint_Security	
+Scenario_Hillside_Domination
+Scenario_Hillside_Firefight_East	
+Scenario_Hillside_Firefight_West	
+Scenario_Hillside_Frontline	
+Scenario_Hillside_Outpost	
+Scenario_Hillside_Push_Insurgents	
+Scenario_Hillside_Push_Security	
+Scenario_Hillside_Skirmish	
+Scenario_Hillside_Team_Deathmatch	
+
+MINISTRY
+
+Scenario_Ministry_Checkpoint_Insurgents	
+Scenario_Ministry_Checkpoint_Security
+Scenario_Ministry_Domination
+
+Scenario_Ministry_Firefight_A
+
+Scenario_Ministry_Outpost
+Scenario_Ministry_Skirmish
+
+Scenario_Ministry_Team_Deathmatch
+
+OUTSKIRTS (COMPOUND)
+
+Scenario_Outskirts_Checkpoint_Insurgents
+Scenario_Outskirts_Checkpoint_Security
+Scenario_Outskirts_Domination	Domination
+Scenario_Outskirts_Firefight_East
+Scenario_Outskirts_Firefight_West
+Scenario_Outskirts_Frontline	Frontline
+Scenario_Outskirts_Outpost	Outpost
+Scenario_Outskirts_Push_Insurgents
+Scenario_Outskirts_Push_Security
+Scenario_Outskirts_Skirmish
+Scenario_Outskirts_Team_Deathmatch
+
+POWER PLANT (POWERPLANT)
+
+Scenario_PowerPlant_Checkpoint_Insurgents	
+Scenario_PowerPlant_Checkpoint_Security	
+Scenario_PowerPlant_Domination	
+Scenario_PowerPlant_Firefight_East	
+Scenario_PowerPlant_Firefight_West	
+Scenario_PowerPlant_Outpost	Outpost
+Scenario_PowerPlant_Push_Insurgents	
+Scenario_PowerPlant_Push_Security	
+
+PRECINCT
+
+Scenario_Precinct_Checkpoint_Insurgents	
+Scenario_Precinct_Checkpoint_Security	
+Scenario_Precinct_Domination	
+Scenario_Precinct_Firefight_East	
+Scenario_Precinct_Firefight_West	
+Scenario_Precinct_Frontline	
+Scenario_Precinct_Push_Insurgents	
+Scenario_Precinct_Push_Security	
+Scenario_Precinct_Skirmish	
+Scenario_Precinct_Team_Deathmatch	
+
+REFINERY (OILFIELD)
+
+Scenario_Refinery_Checkpoint_Insurgents	
+Scenario_Refinery_Checkpoint_Security
+Scenario_Refinery_Domination	
+Scenario_Refinery_Firefight_West	
+Scenario_Refinery_Frontline	
+Scenario_Refinery_Push_Insurgents	
+Scenario_Refinery_Push_Security	
+Scenario_Refinery_Skirmish	
+Scenario_Refinery_Team_Deathmatch	
+
+SUMMIT (MOUNTAIN)
+
+Scenario_Summit_Checkpoint_Insurgents	
+Scenario_Summit_Checkpoint_Security	
+Scenario_Summit_Domination	
+Scenario_Summit_Firefight_East	
+Scenario_Summit_Firefight_West	
+Scenario_Summit_Frontline	
+Scenario_Summit_Push_Insurgents	
+Scenario_Summit_Push_Security	
+Scenario_Summit_Skirmish	
+Scenario_Summit_Team_Deathmatch	
+
+TELL
+
+Scenario_Tell_Checkpoint_Insurgents	
+Scenario_Tell_Checkpoint_Security	
+Scenario_Tell_Outpost	
+Scenario_Tell_Domination	
+Scenario_Tell_Firefight_East	
+Scenario_Tell_Firefight_West	
+Scenario_Tell_Frontline	
+Scenario_Tell_Push_Insurgents	
+Scenario_Tell_Push_Security	
+
+TIDEWAY (BUHRIZ)	
+
+Scenario_Tideway_Checkpoint_Insurgents
+Scenario_Tideway_Checkpoint_Security
+Scenario_Tideway_Domination
+Scenario_Tideway_Firefight_West
+Scenario_Tideway_Frontline
+Scenario_Tideway_Push_Insurgents
+Scenario_Tideway_Push_Security
+
+For Checkpoint scenarios “Insurgents” and “Security” refer to the faction you play as. For Push, the faction names represent the team you attack as. Firefight for most maps will contain a West and an East layout.
+
+General Configuration
+A bunch of general gameplay options can be added to Game.ini. Below is a table that lists the section they need to be under (find or add them to the file) as well as the options available under that section.
+
+ 
+
+[/Script/Insurgency.INSGameMode]
+Variable	Default	Description
+bKillFeed	False	Is the kill feed enabled?
+bKillFeedSpectator	True	Is the kill feed enabled for dedicated spectators and replays?
+bKillerInfo	True	Show information about a death (killer, weapon) to the victim?
+bKillerInfoRevealDistance	False	Reveal distance of kills?
+TeamKillLimit	3	Limit for the number of team kills one player can perform before being kicked.
+TeamKillGrace	0.2	Grace timer between team killing incidents.
+TeamKillReduceTime	90	How long until a player’s TK count reduces by 1.
+bDeadSay	False	Can alive players see messages from the dead?
+bDeadSayTeam	True	Can alive players see messages from dead teammates using team-only chat?
+bVoiceAllowDeadChat	False	Can alive players hear voice chat from dead players?
+bVoiceEnemyHearsLocal	True	Can proximity voice chat be heard by enemies?
+
+[/Script/Insurgency.INSMultiplayerMode]
+Variable	Default	Description
+GameStartingIntermissionTime	5	The additional time to wait for additional players during the starting intermission.
+WinTime	5	How long players are frozen before transitioning to the round intermission screen.
+PostRoundTime	15	How long is spent on the intermission screen.
+PostGameTime	15	How much time is spent between last post round and game over
+bAutoAssignTeams	True	Should teams be assigned on connect?
+bAllowFriendlyFire	True	Enables friendly fire.
+FriendlyFireModifier	0.2	Damage modifier for friendly fire.
+FriendlyFireReflect	0	Damage modifier for friendly fire that is mirrored back at the attacker.
+bAutoBalanceTeams	True	Enables auto team balancing.
+AutoBalanceDelay	10	How long to wait after detecting unbalanced teams.
+bMapVoting	True	Enabled map voting at the end of each game.
+bUseMapCycle	True	Enables the use of the map cycle. If disabled, the current map loops indefinitely.
+bVoiceIntermissionAllowAll	True	Allow both teams to talk to each other between rounds.
+IdleLimit	150	How long a player can be idle for before being kicked.
+IdleLimitLowReinforcements	90	How long a player can idle for when there are low reinforcements.
+IdleCheckFrequency	30	How frequently to check for idle players.
+ 
+
+For example, enable the kill feed, show kill distance and disable friendly fire you would enter the following in your Game.ini:
+
+ 
+
+[/Script/Insurgency.INSGameMode]
+
+bKillFeed=True
+
+bKillerInfoRevealDistance=True
+
+
+[/Script/Insurgency.INSMultiplayerMode]
+
+bAllowFriendlyFire=False
+
+Gamemode Configuration
+Gamemode options can be defined through Game.ini, with each section corresponding to a given gamemode. The INI sections are as follows:
+
+ 
+
+Push: [/Script/Insurgency.INSPushGameMode] 
+ 
+
+Skirmish: [/Script/Insurgency.INSSkirmishGameMode]
+Firefight: [/Script/Insurgency.INSFirefightGameMode]
+Checkpoint: [/Script/Insurgency.INSCheckpointGameMode]
+ 
+
+Team Deathmatch: [/Script/Insurgency.INSTeamDeathmatchGameMode]
+ 
+
+ 
+
+Any of the below settings under the general sections can be applied globally by putting them in the appropriate INI section.
+
+ 
+
+General ([/Script/Insurgency.INSGameMode])
+Variable	Default	Description
+ObjectiveCaptureTime	Varies	How long it takes to capture territorial objectives.
+ObjectiveResetTime	-1	How long objective progress decays with no one on the point. Negative value disables.
+ObjectiveSpeedup	0.25	Additional capture speed-up for each player on the point.
+ObjectiveMaxSpeedupPlayers	4	Maximum players taken into account for capture speed-up.
+
+General ([/Script/Insurgency.INSMultiplayerMode])
+Variable	Default	Description
+MinimumPlayers	1	Minimum players required on each team to start the game.
+RoundLimit	Varies	Maximum number of rounds to play.
+WinLimit	Varies	Number of rounds required for game victory.
+GameTimeLimit	-1	Maximum duration a game can last. Negative value disables.
+PreRoundTime	10	Amount of “freeze time” at the start of a round.
+RoundTime	Varies	Duration of the round.
+OverTime	60	Amount of overtime given when there’s an objective being contested after the round timer expires.
+TeamSwitchTime	10	Minimum additional time spent between team switches.
+SwitchTeamsEveryRound	Varies	How often to switch teams. 0 = never, 1 = every round, 2 = every other round, etc.
+bAllowPlayerTeamSelect	True	Allow players to switch to the other team?
+bBots	False	Enable bots?
+BotQuota	Varies	Bot quota to fill.
+InitialSupply	15	Amount of starting supply points.
+MaximumSupply	15	Maximum supply that can be earned.
+bSupplyGainEnabled	False	Enable supply gain throughout the round?
+bAwardSupplyInstantly
+bAllowThirdPersonSpectate
+
+False
+False
+
+Should supply gain be
+ awarded instantly?
+
+Third Person Spectate
+
+SupplyGainFrequency	150	Score threshold for earning 
+Supply.
+
+Push [/Script/Insurgency.INSPushGameMode] 
+Variable	Default	Description
+RoundTimeExtension	300	How long a round is extended for each successful capture.
+AttackerWavesPerObjective	5	Number of waves attackers get per-objective.
+AttackerWaveDPR	0.25	Percentage of attacker team that has to be dead to trigger a reinforcement wave.
+AttackerWaveTimer	20	Duration of attacker reinforcement wave timer.
+DefenderWavesPerObjective	5	Number of waves attackers get per-objective.
+DefenderWaveDPR	0.25	Percentage of defending team that has to be dead to trigger a reinforcement wave.
+DefenderWaveTimer	35	Duration of defender reinforcement wave timer.
+LastStandSetupDelay	10	Delay for the last defender spawn zone to be disabled.
+AdvanceAttackerSpawnsDelay	30	Delay in advancing the attacker spawns.
+
+Skirmish [/Script/Insurgency.INSSkirmishGameMode]
+Variable	Default	Description
+DefaultReinforcementWaves	5	Starting reinforcement waves for each team.
+CaptureBonusWaves	1	Number of bonus waves to get when an objective is taken while the team cache is still intact.
+
+Frontline [/Script/Insurgency.INSFrontlineGameMode]
+Variable	Default	Description
+StartingWaves	15	Number of waves each team starts with.
+CapturingBonusWave	2	Number of waves a team gains for capturing an objective.
+RegressSpawnsTimer	20	Timer used for giving players a chance to fallback after losing an objective.
+
+Firefight [/Script/Insurgency.INSFirefightGameMode]
+Variable	Default	Description
+bAllowThirdPersonSpectate	True	Allow third person spectate ?
+
+General Coop ([/Script/Insurgency.INSCoopMode])
+Variable	Default	Description
+bUseVehicleInsertion	True	Use vehicle insertion sequences where possible.
+FriendlyBotQuota	4	Friendly bots for coop.
+MinimumEnemies	6	Minimum number of enemy bots.
+MaximumEnemies	12	Maximum number of enemy bots.
+
+Checkpoint [/Script/Insurgency.INSCheckpointGameMode]
+Variable	Default	Description
+DefendTimer	90	Time to defend against counter attack with small player team.
+DefendTimerFinal	180	Extend duration of counter-attack by this on the final point.
+RetreatTimer	10	Time to force bots to retreat after a counter-attack.
+RespawnDPR	0.1	“Dead player ratio” that must be reached before respawning the bot team.
+RespawnDelay	20	Bot respawn delay.
+PostCaptureRushTimer	30	Time bots will rush the cache after destruction.
+CounterAttackRespawnDPR	0.2	“Dead player ratio” that must be reached before respawning the bot team during a counter-attack.
+CounterAttackRespawnDelay	20	Bot respawn delay during counter-attack.
+ObjectiveTotalEnemyRespawnMultiplierMin	1	Multiplier of bots to respawn with minimum player count.
+ObjectiveTotalEnemyRespawnMultiplierMax	1	Multiplier of bots to respawn with maximum player count.
+FinalCacheBotQuotaMultiplier	1.5	Increase in bot quota for final objective if it’s a cache.
+
+
+Lighting Scenarios
+As of 1.7, Night scenarios are available. This is controlled through the travel URL parameter ?Lighting=, valid values are Night or Day.
+
+For the map cycle, you control this through a Lighting parameter, similar to the Mode parameter. You should make sure that this parameter is specified for the correct voting image to show. For example:
+
+(Scenario="Scenario_Town_Checkpoint_Security",Lighting="Night")
+This will set the map cycle entry to use Hideout (Town) at Night on the Checkpoint Security scenario. You can mix Day and Night scenarios in the same map cycle by explicitly defining the Lighting parameter for both Day and Night, for example:
+
+(Scenario="Scenario_Town_Checkpoint_Security",Lighting="Night")
+(Scenario="Scenario_Town_Checkpoint_Security",Lighting="Day")
+This will allow you to play Hideout Checkpoint Security on both Day and Night which will show the appropriate images on the voting screen.
+
+
+Mutators
+Mutators (formerly rulesets) are packaged gameplay configuration assets which the game ships with. You may use these on your own servers by
+
+specifying -mutators=MutatorName on the server command line where “MutatorName” is from the following options:
+
+ 
+
+File Name	Mutator Name	Description
+AllYouCanEat	All You Can Eat	Start with 100 supply points.
+AntiMaterielRiflesOnly	Anti-Materiel Only	Only anti-materiel rifles are available along with normal equipment and explosives.
+BoltActionsOnly	Bolt-Actions Only	Only bolt-action rifles are available along with normal equipment and explosives.
+Broke	Broke	Start with 0 supply poinys.
+BulletSponge	Bullet Sponge	Health is increased.
+Competitive	Competitive	Equipment is more expensive, rounds are shorter, and capturing objectives is faster.
+CompetitiveLoadouts	Competitive Loadouts	Player classes are replaced with those from Competitive.
+FastMovement	Fast Movement	Move faster.
+Frenzy	Frenzy	Fight against AI enemies who only use melee attacks. Watch out for special enemies.
+Guerrillas	Guerrillas	Start with 5 supply points.
+Hardcore	Hardcore	Mutator featuring slower movement speeds and longer capture times.
+HeadshotOnly	Headshots Only	Players only take damage when shot in the head.
+HotPotato	Hot Potato	A live fragmentation grenade is dropped on death.
+LockedAim	Locked Aim	Weapons always point to the center of the screen.
+LowGravity	Low Gravity	Float when jumping or falling, and shoot while midair.
+NoAim	No Aim Down Sights	Aiming down sights is disabled.
+PistolsOnly	Pistols Only	Only pistols are available along with normal equipment and explosives.
+ShotgunsOnly	Shotguns Only	Only Shotguns are available along with normal equipment and explosives.
+SlowCaptureTimes	Slow Capture Times	Objectives will take longer to capture.
+SlowMovement	Slow Movement	Move slower.
+SoldierOfFortune	Soldier of Fortune	Gain supply points as your score increases.
+SpecialOperations	Special Operations	Start with 30 supply points.
+Strapped	Strapped	Start with 1 supply point.
+Ultralethal	Ultralethal	Everyone dies with one shot.
+Vampirism	Vampirism	Receive health when dealing damage to enemies equal to the amount of damage dealt.
+Warlords	Warlords	Start with 10 supply points.
+ 
+
+You may specify multiple mutators by using a comma-separated list. For example to enable Hot Potato and Vampirism, specify -mutators=HotPotato,Vampirism on the server command line.
+
+Some mutators can be configured beyond what is provided by the defaults. These mutators are listed below. All Mutator settings go in Engine.ini (will be changed to Game.ini in the future for consistency).
+
+Headshots Only
+
+Headshots Only settings can be configured under [/Script/Insurgency.Mutator_HeadshotOnly].
+
+INI Entry	Default	Travel URL Parameter	Description
+bCheckMeleeDamage	false	N/A	Should melee be checked for headshots
+Hot Potato
+
+Hot Potato settings can be configured under [/Script/Insurgency.Mutator_HotPotato].
+
+INI Entry	Default	Travel URL Parameter	Description
+GrenadeClass	/Game/Game/Actors/Projectiles/BP_Projectile_M67.BP_Projectile_M67_C	N/A	The grenade type to be dropped on death.
+ThrowbackWeaponClass	/Game/Game/Actors/Weapons/Grenade/BP_Grenade_M67.BP_Grenade_M67_C	N/A	Weapon used for throwing back the dropped grenade.
+bIgnoreHeadshots	false	HotPotato_bIgnoreHeadshots	Don’t drop a grenade if it was a headshot?
+bBotsOnly	false	HotPotato_bBotsOnly	Only drop grenades for bots?
+Vampirism
+
+Vampirism settings can be configured under [/Script/Insurgency.Mutator_Vampirism].
+INI Entry	Default	Travel URL Parameter	Description
+bCountFriendlyFire	false	Vampirism_bCountFriendlyFire	Count friendly fire towards health gain?
+MaxHealth	1000	Vampirism_MaxHealth	The maximum amount of health that you can gain from damaging other players.
+Mods
+As of the 1.6 update, you can host mods on your server. Mods are delivered using mod.io. To get started you will need a mod.io account, once you have signed-in, click your username as the top right, and click API Access from the left navigation.
+
+OAuth management page
+
+Under OAuth 2 Management, under Generate Access Token, enter a name to give your token and give it read access (write access is not needed) and click Create Token.
+
+Generated token
+
+You will be presented with your auth token, you may copy this to your clipboard. In your server’s Engine.ini, you will enter the following to authenticate your server with the token (replace “TOKEN HERE” with what you just copied):
+
+[/Script/ModKit.ModIOClient]
+bHasUserAcceptedTerms=True
+AccessToken=TOKEN HERE
+Now you have entered your authentication token, your server is ready to start accepting mods. Your server must include -Mods on the command line for this to function.
+
+To specify a list of mods your server is running you can add a text file in Insurgency/Config/Server/Mods.txt specifying each mod ID line by line. You can also override the text file read by specifying -ModList=MyCustomModList.txt on the command line.
+
+If you wish to specify a list of mods on the command line you may do this through specifying -CmdModList="mod1,mod2,mod3" where mod1,mod2,mod3 is a command separated list of mod IDs.
+
+You may specify a map to travel to after mods are downloaded by specifying the ModDownloadTravelTo= command line argument, followed by the travel URL argument to change to.
+
+Player Voting
+As of update 1.1, community servers can opt into enabling player voting on their servers. This can be enabled by entering the following into Game.ini:
+
+ 
+
+[/Script/Insurgency.TeamInfo]
+
+bVotingEnabled=True
+
+TeamVoteIssues=/Script/Insurgency.VoteIssueKick
+
+This will enable voting and include the vote kick issue, which as of now is the only supported voting issue. When additional vote issues are available, you would add a new line below for each issue you want to enable.
+
+ 
+
+When voting is enabled, players can press Esc and click “Call Vote” to vote for a vote issue. Pressing F1 will vote yes and pressing F2 will vote no.
+
+Vote Kick Options
+INI Section: [/Script/Insurgency.VoteIssueKick]
+
+ 
+
+Option	Default	Description
+MinimumPlayersRequired	3	The number of players required to start a vote.
+bRequiresMinimumToStart	True	Does this issue require a minimum number of players to show their voting intentions before commencing the vote?
+MinimumPlayerRatio	0.25	Minimum ratio of team required to start a vote.
+VotePassRatio	0.75	Ratio of team required to vote yes for vote to pass.
+MinimumYesNoDifference	2	For the vote to succeed, yes must have this number of votes over no.
+VoteTimeout	90	How long until this vote can be called again.
+bCanTargetEnemies	false	Can the vote target an enemy player?
+IdleVoteBanDuration	-1	How long voting an idle player will ban them for in seconds, -1 represents a kick only.
+DefaultVoteBanDuration	120	How long a ban for any other reason will last in seconds.
+ 
+
+Linux Game Server Manager Installation
+ 
+
+Install
+sudo dpkg –add-architecture i386; sudo apt update; sudo apt install mailutils postfix curl wget file bzip2 gzip unzip bsdmainutils python util-linux ca-certificates binutils bc jq tmux lib32gcc1 libstdc++6 libstdc++6:i386
+
+adduser inssserver1
+
+su - inssserver
+
+wget -O linuxgsm.sh https://linuxgsm.sh && chmod +x linuxgsm.sh && bash linuxgsm.sh inssserver
+
+./inssserver install
+2.Server commands
+
+All Commands
+
+A complete list of commands can be found by typing
+
+./inssserver
+Below are the most common commands available.
+
+Running
+
+start
+
+./inssserver start
+stop
+
+./inssserver stop
+restart
+
+./inssserver restart
+console
+
+Console allows you to view the live console of a server as it is running and allow you to enter commands; if supported.
+
+./inssserver console
+To exit the console press CTRL+b d. Pressing CTRL+c will terminate the server.
+
+Updating
+
+Update checks for any server updates and applies them. The server will update and restart only if required.
+
+./inssserver update
+Bypass the check and go straight to SteamCMD update.
+
+./inssserver force-update
+validate
+
+You can use the SteamCMD validate option when updating the server.
+
+./inssserver validate
+Debugging
+
+Details
+
+You can get all important and useful details about the server such as passwords, ports, config files etc.
+
+./inssserver details
+Debug
+
+Use debug mode to help you if you are having issues with the server. Debug allows you to see the output of the server directly to your terminal allowing you to diagnose any problems the server might be having.
+
+./inssserver debug
+Logs
+
+Server logs are available to monitor and diagnose your server. Script, console and game server (if available) logs are created for the server.
+
+/home/inssserver/logs
+
+Backup
+
+Backup will allow you to create a complete bzip2 archive of the whole server.
+
+./inssserver backup
+Monitor
+
+LinuxGSM can monitor the game server by checking that the proccess is running and querying it. Should the server go offline LinuxGSM can restart the server and send you an alert. You can use cronjobs to setup monitoring.
+
+./inssserver monitor
+ 
+
+Configuration LGSM Coop Hardcore
+
+ 
+
+../lgsm/config-lgsm/inssserver
+
+ 
+
+Common.cfg
+
+ 
+
+##################################
+
+######## Common Settings #########
+
+##################################
+
+# PLACE GLOBAL SETTINGS HERE
+
+## These settings will apply to all instances
+
+port=”27XXX”
+
+queryport=”27XXX”
+
+servername=”CoopHardcore”
+
+serverpassword=””
+
+defaultmap=”Compound”
+
+defaultscenario=”Scenario_Outskirts_Checkpoint_Security”
+
+maxplayers=”10″
+
+fn_parms(){
+
+parms=”${defaultmap}?Scenario=${defaultscenario}?MaxPlayers=${maxplayers}?Port=${port}?QueryPort=${queryport}?game=CheckpointHardcore -GSLTToken=XXX -GameStats ruleset=OfficialRules -hostname=’${servername}’ -MapCycle=MapCycle -Adminlist=Admins -noEAC -log”
+
+}
+
+# Discord Alerts | https://github.com/GameServerManagers/LinuxGSM/wiki/Discord
+
+discordalert=”on”
+
+discordwebhook=”https://discordapp.com/api/XXX“
+
+ 
+
+../serverfiles/Insurgency/Saved/Config/LinuxServer
+
+ 
+
+Game.ini
+
+ 
+
+[Rcon]
+
+bEnabled=True
+
+Password=xxx
+
+ListenPort=xxx
+
+bAllowConsoleCommands=True
+
+MaxPasswordAttempts=3
+
+IncorrectPasswordBanTime=30
+
+ 
+
+[/Script/Engine.GameSession]
+
+MaxPlayers=50
+
+MaxSpectators=0
+
+ 
+
+[/Script/AIModule.AISystem]
+
+bAllowStrafing=False
+
+bAcceptPartialPaths=True
+
+bEnableBTAITasks=False
+
+bFinishMoveOnGoalOverlap=False
+
+ 
+
+[/Script/AIModule.AIController]
+
+bAllowStrafe=True
+
+bLOSflag=True
+
+bSkipExtraLOSChecks=False
+
+bWantsPlayerState=True
+
+bAdvancedTactics=True
+
+bSetControlRotationFromPawnOrientation=True
+
+ 
+
+[/Script/AIModule.AIPerceptionComponent]
+
+PeripheralVisionAngle=180
+
+ 
+
+[/Script/AIModule.AISenseConfig_Sight]
+
+PeripheralVisionAngleDegrees=180
+
+AutoSuccessRangeFromLastSeenLocation=500
+
+ 
+
+[/Script/AIModule.EnvQueryManager]
+
+QueryCountWarningInterval=5.0
+
+ 
+
+[/Script/Insurgency.INSGameMode]
+
+Rulesets=coop hardcore
+
+bKillFeed=False
+
+bKillFeedSpectator=False
+
+bKillerInfo=False
+
+bKillerInfoRevealDistance=False
+
+bEnforceFriendlyFireReflect=False
+
+MinimumTotalFriendlyFireDamageToReflect=20
+
+TeamKillLimit=3
+
+TeamKillGrace=0.2
+
+TeamKillReduceTime=90
+
+bDeadSay=True
+
+bDeadSayTeam=True
+
+bVoiceAllowDeadChat=True
+
+bVoiceEnemyHearsLocal=True
+
+ObjectiveCaptureTime=30
+
+ObjectiveResetTime=-1
+
+ObjectiveSpeedup=0.25
+
+ObjectiveMaxSpeedupPlayers=4
+
+ObjectiveRadioSpeedup=0.6
+
+FloatingObjectiveVisibility=ShowActiveOnly
+
+bAllowRestrictedAreas=False
+
+bDisableRestrictedAreasOnWaveDepletion=True
+
+bLoseSpawnProtectionOnMove=True
+
+LoseSpawnProtectionOnMoveGrace=5.0
+
+bDisableVehicles=False
+
+DroppedWeaponLifespan=90
+
+WarmupEnterTime=0.0
+
+ 
+
+[/Script/Insurgency.INSMultiplayerMode]
+
+GameStartingIntermissionTime=15
+
+PreRoundTime=10
+
+PostRoundTime=5
+
+PostGameTime=10
+
+bAllowFriendlyFire=True
+
+FriendlyFireModifier=0.2
+
+FriendlyFireReflect=0
+
+bMapVoting=True
+
+bUseMapCycle=True
+
+bVoiceIntermissionAllowAll=True
+
+IdleLimit=150
+
+IdleLimitLowReinforcements=90
+
+IdleLimitLastOneStandingCombatZone=60
+
+IdleLimitLastOneStandingSpawnZone=10
+
+IdleCheckFrequency=30
+
+bCheckLastPersonStanding=True
+
+LeaverPenaltyPlayerLeaveTime=840
+
+LeaverPenaltyGameStartTimeLimit=60
+
+LeaverPenaltyPlayerLeftTimeLimit=120
+
+MinimumPlayers=1
+
+RoundLimit=3
+
+WinLimit=1
+
+bSupplyGainEnabled=True
+
+bAwardSupplyInstantly=True
+
+SupplyGainFrequency=250
+
+bAllowThirdPersonSpectate=True
+
+GameTimeLimit=-1
+
+TeamSwitchTime=10
+
+ScoreboardConfig=(bDisplayRoundsWon=True,bDisplayTeamScore=True,bDisplayTeamPoints=True,PointsText=””,bDisplayPlayerScore=True,bDisplayPlayerKAD=True,bDisplayPlayerObjectives=True,bAlwaysShowExtendedInfo=True,bDisplayObjectiveBriefing=True)
+
+bIgnoreBotPurge=False
+
+bIgnoreRoundOver=False
+
+ 
+
+[/Script/Insurgency.INSCoopMode]
+
+bUseVehicleInsertion=True
+
+bBots=True
+
+FriendlyBotQuota=5
+
+bLoseWhenAllPlayersDead=True
+
+AlarmDuration=60
+
+ 
+
+[/Script/Insurgency.TeamInfo]
+
+bVotingEnabled=True
+
+TeamVoteIssues=/Script/Insurgency.VoteIssueKick
+
+ 
+
+[/Script/Insurgency.VoteIssueKick]
+
+MinimumPlayersRequired=3
+
+bRequiresMinimumToStart=True
+
+MinimumPlayerRatio=0.25
+
+VotePassRatio=0.75
+
+MinimumYesNoDifference=2
+
+VoteTimeout=90
+
+bCanTargetEnemies=False
+
+IdleVoteBanDuration=-1
+
+DefaultVoteBanDuration=120
+
+bOnlyAdminCanCall=False
+
+bCanTargetAdmins=False
+
+ 
+
+../serverfiles/Insurgency/Config/Server
+
+ 
+
+MapCycle.txt
+
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Refinery_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Refinery_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Refinery_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Refinery_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Hideout_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Hideout_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Hideout_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Hideout_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Crossing_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Crossing_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Crossing_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Crossing_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Summit_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Summit_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Summit_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Summit_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Ministry_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Ministry_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Ministry_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Ministry_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tideway_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Tideway_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tell_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Tell_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tell_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Tell_Checkpoint_Security”,Lighting=”Day”)
+
+Admins.txt
+
+ 
+
+765611980XXX6430X
+
+ 
+
+Configuration LGSM Coop Standard
+
+ 
+
+../lgsm/config-lgsm/inssserver
+
+ 
+
+Common.cfg
+
+ 
+
+##################################
+
+######## Common Settings #########
+
+##################################
+
+# PLACE GLOBAL SETTINGS HERE
+
+## These settings will apply to all instances
+
+port=”27XXX”
+
+queryport=”27XXX”
+
+servername=”CoopStandard”
+
+serverpassword=””
+
+defaultmap=”Compound”
+
+defaultscenario=”Scenario_Outskirts_Checkpoint_Insurgents”
+
+maxplayers=”10″
+
+fn_parms(){
+
+parms=”${defaultmap}?Scenario=${defaultscenario}?MaxPlayers=${maxplayers}?Port=${port}?QueryPort=${queryport} -hostname=’${servername}’ -GSLTToken=xxx -GameStats ruleset=OfficialRules -MapCycle=MapCycle -Adminlist=Admins -noEAC -log”
+
+}
+
+ 
+
+# Discord Alerts | https://github.com/GameServerManagers/LinuxGSM/wiki/Discord
+
+discordalert=”on”
+
+discordwebhook=”https://discordapp.com/api/XXX“
+
+ 
+
+../serverfiles/Insurgency/Saved/Config/LinuxServer
+
+ 
+
+Game.ini
+
+ 
+
+[Rcon]
+
+bEnabled=True
+
+Password=xxx
+
+ListenPort=xxx
+
+bAllowConsoleCommands=True
+
+MaxPasswordAttempts=3
+
+IncorrectPasswordBanTime=30
+
+noEAC=true
+
+ 
+
+[/Script/Engine.GameSession]
+
+MaxPlayers=50
+
+MaxSpectators=0
+
+ 
+
+[/Script/AIModule.AISystem]
+
+bAllowStrafing=False
+
+bAcceptPartialPaths=True
+
+bEnableBTAITasks=False
+
+bFinishMoveOnGoalOverlap=False
+
+ 
+
+[/Script/AIModule.AIController]
+
+bAllowStrafe=True
+
+bLOSflag=True
+
+bSkipExtraLOSChecks=False
+
+bWantsPlayerState=True
+
+bAdvancedTactics=True
+
+bSetControlRotationFromPawnOrientation=True
+
+ 
+
+[/Script/AIModule.AIPerceptionComponent]
+
+PeripheralVisionAngle=180
+
+ 
+
+[/Script/AIModule.AISenseConfig_Sight]
+
+PeripheralVisionAngleDegrees=180
+
+AutoSuccessRangeFromLastSeenLocation=500
+
+ 
+
+[/Script/AIModule.EnvQueryManager]
+
+QueryCountWarningInterval=5.0
+
+ 
+
+[/Script/Insurgency.INSGameMode]
+
+Rulesets=coop standard
+
+bKillFeed=True
+
+bKillFeedSpectator=True
+
+bKillerInfo=True
+
+bKillerInfoRevealDistance=True
+
+bEnforceFriendlyFireReflect=False
+
+MinimumTotalFriendlyFireDamageToReflect=20
+
+TeamKillLimit=3
+
+TeamKillGrace=0.2
+
+TeamKillReduceTime=90
+
+bDeadSay=True
+
+bDeadSayTeam=True
+
+bVoiceAllowDeadChat=True
+
+bVoiceEnemyHearsLocal=True
+
+ObjectiveCaptureTime=30
+
+ObjectiveResetTime=-1
+
+ObjectiveSpeedup=0.25
+
+ObjectiveMaxSpeedupPlayers=4
+
+ObjectiveRadioSpeedup=0.6
+
+FloatingObjectiveVisibility=ShowActiveOnly
+
+bLoseSpawnProtectionOnMove=False
+
+LoseSpawnProtectionOnMoveGrace=5.0
+
+bDisableVehicles=False
+
+DroppedWeaponLifespan=90
+
+WarmupEnterTime=0.0
+
+ 
+
+[/Script/Insurgency.INSMultiplayerMode]
+
+GameStartingIntermissionTime=15
+
+PreRoundTime=10
+
+PostRoundTime=5
+
+PostGameTime=10
+
+bAllowFriendlyFire=True
+
+FriendlyFireModifier=0.2
+
+FriendlyFireReflect=0
+
+bMapVoting=True
+
+bUseMapCycle=True
+
+bVoiceIntermissionAllowAll=True
+
+IdleLimit=150
+
+IdleLimitLowReinforcements=90
+
+IdleLimitLastOneStandingCombatZone=60
+
+IdleLimitLastOneStandingSpawnZone=10
+
+IdleCheckFrequency=30
+
+bCheckLastPersonStanding=True
+
+LeaverPenaltyPlayerLeaveTime=840
+
+LeaverPenaltyGameStartTimeLimit=60
+
+LeaverPenaltyPlayerLeftTimeLimit=120
+
+MinimumPlayers=1
+
+RoundLimit=3
+
+WinLimit=1
+
+InitialSupply=35
+
+MaximumSupply=50
+
+bSupplyGainEnabled=True
+
+bAwardSupplyInstantly=True
+
+SupplyGainFrequency=250
+
+bAllowThirdPersonSpectate=True
+
+GameTimeLimit=-1
+
+TeamSwitchTime=10
+
+SwitchTeamsEveryRound=0
+
+ScoreboardConfig=(bDisplayRoundsWon=True,bDisplayTeamScore=True,bDisplayTeamPoints=True,PointsText=””,bDisplayPlayerScore=True,bDisplayPlayerKAD=True,bDisplayPlayerObjectives=True,bAlwaysShowExtendedInfo=True,bDisplayObjectiveBriefing=True)
+
+bIgnoreBotPurge=False
+
+bIgnoreRoundOver=False
+
+ 
+
+[/Script/Insurgency.INSCoopMode]
+
+bUseVehicleInsertion=True
+
+bBots=True
+
+FriendlyBotQuota=5
+
+SoloWaveIncrementOnObjectiveCapture=0
+
+bLoseWhenAllPlayersDead=True
+
+AlarmDuration=60
+
+SoloEnemies=10
+
+ 
+
+[/Script/Insurgency.TeamInfo]
+
+bVotingEnabled=True
+
+TeamVoteIssues=/Script/Insurgency.VoteIssueKick
+
+ 
+
+[/Script/Insurgency.VoteIssueKick]
+
+MinimumPlayersRequired=3
+
+bRequiresMinimumToStart=True
+
+MinimumPlayerRatio=0.25
+
+VotePassRatio=0.75
+
+MinimumYesNoDifference=2
+
+VoteTimeout=90
+
+bCanTargetEnemies=False
+
+IdleVoteBanDuration=-1
+
+DefaultVoteBanDuration=120
+
+bOnlyAdminCanCall=False
+
+bCanTargetAdmins=False
+
+ 
+
+../serverfiles/Insurgency/Config/Server
+
+ 
+
+MapCycle.txt
+
+ 
+
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Refinery_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Refinery_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Refinery_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Refinery_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Hideout_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Hideout_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Hideout_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Hideout_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Crossing_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Crossing_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Crossing_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Crossing_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Summit_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Summit_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Summit_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Summit_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Ministry_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Ministry_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Ministry_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Ministry_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tideway_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Tideway_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tell_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Tell_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tell_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Tell_Checkpoint_Security”,Lighting=”Day”)
+
+ 
+
+Admins.txt
+
+ 
+
+765611980XXX6430X
+
+ 
+
+Configuration LGSM ISP Clan War Server
+
+ 
+
+../lgsm/config-lgsm/inssserver
+
+ 
+
+Common.cfg
+
+ 
+
+##################################
+
+######## Common Settings #########
+
+##################################
+
+# PLACE GLOBAL SETTINGS HERE
+
+## These settings will apply to all instances
+
+port=”27XXX”
+
+queryport=”27XXX”
+
+servername=”EU Competitive Gaming League”
+
+serverpassword=”xxx”
+
+defaultmap=”Oilfield”
+
+defaultscenario=”Scenario_Refinery_Firefight_West”
+
+maxplayers=”12″
+
+fn_parms(){
+
+parms=”${defaultmap}?Scenario=${defaultscenario}?MaxPlayers=${maxplayers}?Port=${port}?QueryPort=${queryport}?password=${serverpassword} -hostname=’${servername}’ -ruleset=CompetitiveTheater -GSLTToken=xxx -GameStats -MapCycle=MapCycle -Adminlist=Admins -log”
+
+}
+
+ 
+
+# Discord Alerts | https://github.com/GameServerManagers/LinuxGSM/wiki/Discord
+
+discordalert=”on”
+
+discordwebhook=”https://discordapp.com/api/XXX“
+
+ 
+
+../serverfiles/Insurgency/Saved/Config/LinuxServer
+
+ 
+
+Game.ini
+
+ 
+
+[/Script/Engine.GameSession]
+
+MaxPlayers=10
+
+ 
+
+[/Script/Insurgency.INSGameMode]
+
+bKillFeed=False
+
+bKillerInfoRevealDistance=False
+
+bVoiceEnemyHearsLocal=False
+
+bKillFeedSpectator=False
+
+bUseMapCycle=True
+
+TeamKillLimit=0
+
+bEnforceFriendlyFireReflect=False
+
+ 
+
+[/Script/Insurgency.INSMultiplayerMode]
+
+bAllowFriendlyFire=True
+
+bAutoBalanceTeams=False
+
+bAutoAssignTeams=False
+
+RoundLimit=21
+
+WinLimit=11
+
+SwitchTeamsEveryRound=10
+
+bMapVoting=True
+
+MinimumPlayers=4
+
+RoundTime=150
+
+OverTime=60
+
+bEnforceFriendlyFireReflect=False
+
+bAllowThirdPersonSpectate=False
+
+ 
+
+[/Script/Insurgency.TeamInfo]
+
+bVotingEnabled=True
+
+TeamVoteIssues=/Script/Insurgency.VoteIssueKick
+
+MinimumPlayersRequired=3
+
+bRequiresMinimumToStart=True
+
+MinimumPlayerRatio=0.25
+
+VotePassRatio=0.75
+
+MinimumYesNoDifference=2
+
+VoteTimeout=90
+
+bCanTargetEnemies=false
+
+IdleVoteBanDuration=-1
+
+DefaultVoteBanDuration=120
+
+ 
+
+[Rcon]
+
+bEnabled=True
+
+Password=xxx
+
+ListenPort=xxx
+
+bAllowConsoleCommands=True
+
+MaxPasswordAttempts=3
+
+IncorrectPasswordBanTime=30
+
+ 
+
+../serverfiles/Insurgency/Config/Server
+
+ 
+
+Mapcycle.txt
+
+(Scenario=”Scenario_Hideout_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Hideout_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Farmhouse_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Farmhouse_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Refinery_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Crossing_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Precinct_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Precinct_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Summit_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Summit_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Ministry_Firefight_A,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_PowerPlant_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_PowerPlant_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Firefight_East”,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Firefight_West”,Lighting=”Day”)
+(Scenario=”Scenario_Tideway_Firefight_West”,Lighting=”Day”)
+(Scenario=”Scenario_Hideout_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Hideout_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Farmhouse_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Farmhouse_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Refinery_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Crossing_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Precinct_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Precinct_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Summit_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Summit_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Outskirts_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Outskirts_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Ministry_Firefight_A,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_PowerPlant_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_PowerPlant_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Firefight_East”,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Firefight_West”,Lighting=”Night”)
+(Scenario=”Scenario_Tideway_Firefight_West”,Lighting=”Night”)
+(Scenario=”Scenario_Tell_Firefight_West”,Lighting=”Day”)
+(Scenario=”Scenario_Tell_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Tell_Firefight_East”,Lighting=”Day”)
+(Scenario=”Scenario_Tell_Firefight_West,Lighting=”Night”)
+
+ 
+
+Admins.txt
+
+ 
+
+765611980XXX6430X
+
+ 
+
+Configuration LGSM ISP Public Competitive Theater
+
+ 
+
+../lgsm/config-lgsm/inssserver
+
+ 
+
+Common.cfg
+
+ 
+
+##################################
+
+######## Common Settings #########
+
+##################################
+
+# PLACE GLOBAL SETTINGS HERE
+
+## These settings will apply to all instances
+
+port=”27xxx”
+
+queryport=”27xxx”
+
+servername=”Competitive Gaming League I Public”
+
+serverpassword=””
+
+defaultmap=”Town”
+
+defaultscenario=”Scenario_Hideout_Firefight_East”
+
+maxplayers=”10″
+
+fn_parms(){
+
+parms=”${defaultmap}?Scenario=${defaultscenario}?MaxPlayers=${maxplayers}?Port=${port}?QueryPort=${queryport} -hostname=’${servername}’ -ruleset=CompetitiveTheater -GSLTToken=xxx -GameStats -MapCycle=MapCycle -Adminlist=Admins -noEAC -log”
+
+}
+
+ 
+
+# Discord Alerts | https://github.com/GameServerManagers/LinuxGSM/wiki/Discord
+
+discordalert=”on”
+
+discordwebhook=”https://discordapp.com/api/XXX“
+
+ 
+
+../serverfiles/Insurgency/Saved/Config/LinuxServer
+
+ 
+
+Game.ini
+
+ 
+
+[/Script/Engine.GameSession]
+
+MaxPlayers=10
+
+ 
+
+[/Script/Insurgency.INSGameMode]
+
+bKillFeed=False
+
+bKillerInfoRevealDistance=False
+
+bVoiceEnemyHearsLocal=False
+
+bKillFeedSpectator=False
+
+bUseMapCycle=True
+
+TeamKillLimit=0
+
+bEnforceFriendlyFireReflect=False
+
+ 
+
+[/Script/Insurgency.INSMultiplayerMode]
+
+bAllowFriendlyFire=True
+
+bAutoBalanceTeams=False
+
+bAutoAssignTeams=False
+
+RoundLimit=21
+
+WinLimit=11
+
+SwitchTeamsEveryRound=10
+
+bMapVoting=True
+
+MinimumPlayers=4
+
+RoundTime=150
+
+OverTime=60
+
+bEnforceFriendlyFireReflect=False
+
+bAllowThirdPersonSpectate=False
+
+ 
+
+[/Script/Insurgency.TeamInfo]
+
+bVotingEnabled=True
+
+TeamVoteIssues=/Script/Insurgency.VoteIssueKick
+
+MinimumPlayersRequired=3
+
+bRequiresMinimumToStart=True
+
+MinimumPlayerRatio=0.25
+
+VotePassRatio=0.75
+
+MinimumYesNoDifference=2
+
+VoteTimeout=90
+
+bCanTargetEnemies=false
+
+IdleVoteBanDuration=-1
+
+DefaultVoteBanDuration=120
+
+ 
+
+[Rcon]
+
+bEnabled=True
+
+Password=xxx
+
+ListenPort=xxx
+
+bAllowConsoleCommands=True
+
+MaxPasswordAttempts=3
+
+IncorrectPasswordBanTime=30
+
+ 
+
+../serverfiles/Insurgency/Config/Server
+
+ 
+
+Mapcycle.txt
+
+ 
+
+(Scenario=”Scenario_Hideout_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Hideout_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Farmhouse_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Farmhouse_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Refinery_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Crossing_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Precinct_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Precinct_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Summit_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Summit_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Ministry_Firefight_A,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_PowerPlant_Firefight_East,Lighting=”Day”)
+(Scenario=”Scenario_PowerPlant_Firefight_West,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Firefight_East”,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Firefight_West”,Lighting=”Day”)
+(Scenario=”Scenario_Tideway_Firefight_West”,Lighting=”Day”)
+(Scenario=”Scenario_Hideout_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Hideout_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Farmhouse_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Farmhouse_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Refinery_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Crossing_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Precinct_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Precinct_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Summit_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Summit_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Outskirts_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Outskirts_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Ministry_Firefight_A,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_PowerPlant_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_PowerPlant_Firefight_West,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Firefight_East”,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Firefight_West”,Lighting=”Night”)
+(Scenario=”Scenario_Tideway_Firefight_West”,Lighting=”Night”)
+(Scenario=”Scenario_Tell_Firefight_West”,Lighting=”Day”)
+(Scenario=”Scenario_Tell_Firefight_East,Lighting=”Night”)
+(Scenario=”Scenario_Tell_Firefight_East”,Lighting=”Day”)
+(Scenario=”Scenario_Tell_Firefight_West,Lighting=”Night”)
+
+ 
+
+Admins.txt
+
+ 
+
+765611980XXX6430X
+
+ 
+
+Configuration LGSM Coop Frenzy
+
+ 
+
+../lgsm/config-lgsm/inssserver
+
+ 
+
+Common.cfg
+
+ 
+
+##################################
+
+######## Common Settings #########
+
+##################################
+
+# PLACE GLOBAL SETTINGS HERE
+
+## These settings will apply to all instances
+
+port=”27XXX”
+
+queryport=”27XXX”
+
+servername=”CoopFrenzy”
+
+serverpassword=””
+
+defaultmap=”Ministry”
+
+defaultscenario=”Scenario_Ministry_Checkpoint_Insurgents”
+
+maxplayers=”10″
+
+fn_parms(){
+
+parms=”${defaultmap}?Scenario=${defaultscenario}?MaxPlayers=${maxplayers}?Port=${port}?QueryPort=${queryport} -hostname=’${servername}’ -ruleset=CheckpointFrenzy -GSLTToken=xxx -GameStats ruleset=OfficialRules -MapCycle=MapCycle -Adminlist=Admins -noEAC -log”
+
+}
+
+ 
+
+# Discord Alerts | https://github.com/GameServerManagers/LinuxGSM/wiki/Discord
+
+discordalert=”on”
+
+discordwebhook=”https://discordapp.com/api/XXX“
+
+ 
+
+../serverfiles/Insurgency/Saved/Config/LinuxServer
+
+ 
+
+Game.ini
+
+ 
+
+[Rcon]
+
+bEnabled=True
+
+Password=xxx
+
+ListenPort=xxx
+
+bAllowConsoleCommands=True
+
+MaxPasswordAttempts=3
+
+IncorrectPasswordBanTime=30
+
+ 
+
+[/Script/Engine.GameSession]
+
+MaxPlayers=50
+
+MaxSpectators=0
+
+ 
+
+[/Script/AIModule.AISystem]
+
+bAllowStrafing=False
+
+bAcceptPartialPaths=True
+
+bEnableBTAITasks=False
+
+bFinishMoveOnGoalOverlap=False
+
+ 
+
+[/Script/AIModule.AIController]
+
+bAllowStrafe=True
+
+bLOSflag=True
+
+bSkipExtraLOSChecks=False
+
+bWantsPlayerState=True
+
+bAdvancedTactics=True
+
+bSetControlRotationFromPawnOrientation=True
+
+ 
+
+[/Script/AIModule.AIPerceptionComponent]
+
+PeripheralVisionAngle=180
+
+ 
+
+[/Script/AIModule.AISenseConfig_Sight]
+
+PeripheralVisionAngleDegrees=180
+
+AutoSuccessRangeFromLastSeenLocation=500
+
+ 
+
+[/Script/AIModule.EnvQueryManager]
+
+QueryCountWarningInterval=5.0
+
+ 
+
+[/Script/Insurgency.INSGameMode]
+
+Rulesets=coop frenzy
+
+bKillFeed=False
+
+bKillFeedSpectator=False
+
+bKillerInfo=False
+
+bKillerInfoRevealDistance=False
+
+bEnforceFriendlyFireReflect=False
+
+MinimumTotalFriendlyFireDamageToReflect=20
+
+TeamKillLimit=3
+
+TeamKillGrace=0.2
+
+TeamKillReduceTime=90
+
+bDeadSay=True
+
+bDeadSayTeam=True
+
+bVoiceAllowDeadChat=True
+
+bVoiceEnemyHearsLocal=True
+
+ObjectiveCaptureTime=30
+
+ObjectiveResetTime=-1
+
+ObjectiveSpeedup=0.25
+
+ObjectiveMaxSpeedupPlayers=4
+
+ObjectiveRadioSpeedup=0.6
+
+FloatingObjectiveVisibility=ShowActiveOnly
+
+bAllowRestrictedAreas=False
+
+bDisableRestrictedAreasOnWaveDepletion=True
+
+bLoseSpawnProtectionOnMove=True
+
+LoseSpawnProtectionOnMoveGrace=5.0
+
+bDisableVehicles=False
+
+DroppedWeaponLifespan=360
+
+WarmupEnterTime=0.0
+
+ 
+
+[/Script/Insurgency.INSMultiplayerMode]
+
+GameStartingIntermissionTime=15
+
+PreRoundTime=10
+
+PostRoundTime=5
+
+PostGameTime=10
+
+bAllowFriendlyFire=True
+
+FriendlyFireModifier=0.2
+
+FriendlyFireReflect=0
+
+bMapVoting=True
+
+bUseMapCycle=True
+
+bVoiceIntermissionAllowAll=True
+
+IdleLimit=150
+
+IdleLimitLowReinforcements=90
+
+IdleLimitLastOneStandingCombatZone=60
+
+IdleLimitLastOneStandingSpawnZone=10
+
+IdleCheckFrequency=30
+
+bCheckLastPersonStanding=True
+
+LeaverPenaltyPlayerLeaveTime=840
+
+LeaverPenaltyGameStartTimeLimit=60
+
+LeaverPenaltyPlayerLeftTimeLimit=120
+
+MinimumPlayers=1
+
+RoundLimit=3
+
+WinLimit=1
+
+bSupplyGainEnabled=True
+
+bAwardSupplyInstantly=True
+
+SupplyGainFrequency=250
+
+bAllowThirdPersonSpectate=True
+
+GameTimeLimit=-1
+
+TeamSwitchTime=10
+
+ScoreboardConfig=(bDisplayRoundsWon=True,bDisplayTeamScore=True,bDisplayTeamPoints=True,PointsText=””,bDisplayPlayerScore=True,bDisplayPlayerKAD=True,bDisplayPlayerObjectives=True,bAlwaysShowExtendedInfo=True,bDisplayObjectiveBriefing=True)
+
+bIgnoreBotPurge=False
+
+bIgnoreRoundOver=False
+
+ 
+
+[/Script/Insurgency.INSCoopMode]
+
+bUseVehicleInsertion=True
+
+bBots=True
+
+FriendlyBotQuota=5
+
+bLoseWhenAllPlayersDead=True
+
+AlarmDuration=60
+
+ 
+
+[/Script/Insurgency.TeamInfo]
+
+bVotingEnabled=True
+
+TeamVoteIssues=/Script/Insurgency.VoteIssueKick
+
+ 
+
+[/Script/Insurgency.VoteIssueKick]
+
+MinimumPlayersRequired=3
+
+bRequiresMinimumToStart=True
+
+MinimumPlayerRatio=0.25
+
+VotePassRatio=0.75
+
+MinimumYesNoDifference=2
+
+VoteTimeout=90
+
+bCanTargetEnemies=False
+
+IdleVoteBanDuration=-1
+
+DefaultVoteBanDuration=120
+
+bOnlyAdminCanCall=False
+
+bCanTargetAdmins=False
+
+ 
+
+../serverfiles/Insurgency/Config/Server
+
+ 
+
+MapCycle.txt
+
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Refinery_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Refinery_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Refinery_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Refinery_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Hideout_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Hideout_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Hideout_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Hideout_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Farmhouse_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Crossing_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Crossing_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Crossing_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Crossing_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Summit_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Summit_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Summit_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Summit_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Outskirts_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Ministry_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Ministry_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Ministry_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Ministry_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Hillside_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Hillside_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_PowerPlant_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tideway_Checkpoint_Security”,Lighting=”Day”)
+(Scenario=”Scenario_Tideway_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Tideway_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tell_Checkpoint_Insurgents”,Lighting=”Night”)
+(Scenario=”Scenario_Tell_Checkpoint_Insurgents”,Lighting=”Day”)
+(Scenario=”Scenario_Tell_Checkpoint_Security”,Lighting=”Night”)
+(Scenario=”Scenario_Tell_Checkpoint_Security”,Lighting=”Day”)
+
+ 
+
+ 
+
+Admins.txt
+
+ 
+
+765611980XXX6430X
