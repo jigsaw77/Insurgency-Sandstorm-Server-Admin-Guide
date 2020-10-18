@@ -278,22 +278,19 @@ MINISTRY
 Scenario_Ministry_Checkpoint_Insurgents	
 Scenario_Ministry_Checkpoint_Security
 Scenario_Ministry_Domination
-
 Scenario_Ministry_Firefight_A
-
 Scenario_Ministry_Outpost
 Scenario_Ministry_Skirmish
-
 Scenario_Ministry_Team_Deathmatch
 
 OUTSKIRTS (COMPOUND)
 
 Scenario_Outskirts_Checkpoint_Insurgents
 Scenario_Outskirts_Checkpoint_Security
-Scenario_Outskirts_Domination	Domination
+Scenario_Outskirts_Domination	
 Scenario_Outskirts_Firefight_East
 Scenario_Outskirts_Firefight_West
-Scenario_Outskirts_Frontline	Frontline
+Scenario_Outskirts_Frontline	
 Scenario_Outskirts_Outpost	Outpost
 Scenario_Outskirts_Push_Insurgents
 Scenario_Outskirts_Push_Security
